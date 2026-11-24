@@ -13,13 +13,20 @@ def main() -> int:
     with open(SRC, "r", encoding="utf-8") as f:
         text = f.read()
     # Guard: the gate is exactly two sentences, 1-400 chars of UTF-8,
-    # not only whitespace, one line. Two sentences = exactly two periods.
+    # not only whitespace, one line. Two sentences = the stripped text
+    # ends with a single period and splits on ". " into exactly two
+    # non-empty parts with no further periods inside them.
     stripped = text.strip()
     if not 1 <= len(text) <= 400 or not stripped or "\n" in stripped:
         print("entry fails gate: must be 1-400 chars, not only whitespace, one line",
               file=sys.stderr)
         return 1
-    if text.count(".") != 2 or not text.endswith("."):
+    if not stripped.endswith(".") or stripped.endswith(".."):
+        print("entry fails gate: must be exactly two sentences",
+              file=sys.stderr)
+        return 1
+    sentences = [s for s in stripped[:-1].split(". ") if s]
+    if len(sentences) != 2 or any("." in s for s in sentences):
         print("entry fails gate: must be exactly two sentences",
               file=sys.stderr)
         return 1
